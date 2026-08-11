@@ -31,7 +31,7 @@ export function TasksScreen({
 
   return (
     <View style={styles.screen}>
-      <Header title="Tasks" back onBack={() => onNavigate("Home")} />
+      <Header title="Tasks" back onBack={() => onNavigate("Home")} onProfile={() => onNavigate("Profile")} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.focusRow}>
           <View>
@@ -84,7 +84,7 @@ export function TasksScreen({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 20, paddingBottom: 80 },
+  content: { padding: 20, paddingBottom: 105 },
   focusRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   focusTitle: { fontSize: 27, fontWeight: "800", color: COLORS.ink },
   focusSub: { fontSize: 15, color: COLORS.text, marginTop: 3 },

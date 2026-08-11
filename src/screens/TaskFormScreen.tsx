@@ -2,15 +2,17 @@ import React, { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../theme";
-import { Category, Priority, Task } from "../types";
+import { Category, Priority, ScreenName, Task } from "../types";
 import { Header } from "../components/Header";
 
 export function TaskFormScreen({
   onCancel,
   onSave,
+  onNavigate,
 }: {
   onCancel: () => void;
   onSave: (task: Task) => void;
+  onNavigate: (screen: ScreenName) => void;
 }) {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<Category>("Work");
@@ -39,7 +41,7 @@ export function TaskFormScreen({
 
   return (
     <View style={styles.screen}>
-      <Header title="Tasks" back onBack={onCancel} />
+      <Header title="Add Task" back onBack={onCancel} onProfile={() => onNavigate("Profile")} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.stepRow}>
           <View>

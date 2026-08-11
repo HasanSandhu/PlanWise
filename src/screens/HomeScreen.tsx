@@ -18,7 +18,7 @@ export function HomeScreen({
 
   return (
     <View style={styles.screen}>
-      <Header title="PlanWise" />
+      <Header title="PlanWise" onProfile={() => onNavigate("Profile")} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <Text style={styles.greeting}>Hello, PlanWise Student!</Text>
         <Text style={styles.subtitle}>You have 4 milestones to hit this week. ✨</Text>

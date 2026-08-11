@@ -22,7 +22,7 @@ export function CalendarScreen({
 
   return (
     <View style={styles.screen}>
-      <Header title="PlanWise" back onBack={() => onNavigate("Home")} />
+      <Header title="PlanWise" back onBack={() => onNavigate("Home")} onProfile={() => onNavigate("Profile")} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.month}>SEPTEMBER 2024</Text>
         <View style={styles.monthRow}>
@@ -93,7 +93,7 @@ export function CalendarScreen({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 20, paddingBottom: 85 },
+  content: { padding: 20, paddingBottom: 105 },
   month: { color: COLORS.text, fontSize: 12, letterSpacing: 1, marginTop: 5 },
   monthRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 18 },
   semester: { color: COLORS.ink, fontSize: 27, fontWeight: "800" },
