@@ -259,6 +259,19 @@ function Stat({
   label: string;
   palette: ReturnType<typeof getThemeColors>;
 }) {
+  const styles = StyleSheet.create({
+    stat: {
+      flex: 1,
+      minHeight: 88,
+      borderRadius: 9,
+      backgroundColor: "#F7F4F3",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    statNumber: { fontSize: 26, color: palette.blue, fontWeight: "800" },
+    statLabel: { fontSize: 11, color: palette.text, marginTop: 3 },
+  });
+
   return (
     <View style={styles.stat}>
       <Text style={styles.statNumber}>{number}</Text>

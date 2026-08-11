@@ -1,6 +1,6 @@
 import React from "react";
 import { Platform, StyleSheet, View } from "react-native";
-import { COLORS } from "../theme";
+import { getThemeColors } from "../theme";
 import { ScreenName } from "../types";
 import { BottomNav } from "./BottomNav";
 
@@ -17,13 +17,41 @@ export function MobileShell({
   currentScreen?: Exclude<ScreenName, "TaskForm">;
   onNavigate?: (screen: Exclude<ScreenName, "TaskForm">) => void;
 }) {
+  const palette = getThemeColors(darkMode);
+
+  const styles = StyleSheet.create({
+    outer: {
+      width: "100%",
+      height: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    phone: {
+      width: 430,
+      height: 860,
+      maxWidth: "94%",
+      maxHeight: "96%",
+      borderRadius: 38,
+      borderWidth: 8,
+      borderColor: darkMode ? "#233244" : "#AAB2BD",
+      backgroundColor: palette.background,
+      overflow: "hidden",
+      flexDirection: "column",
+    },
+    content: {
+      flex: 1,
+      minHeight: 0,
+      backgroundColor: palette.background,
+    },
+  });
+
   return (
     <View style={styles.outer}>
       <View
         style={[
           styles.phone,
-          darkMode && styles.phoneDark,
-          Platform.OS === "web" && ({ boxShadow: "0 18px 55px rgba(24,39,55,.20)" } as any),
+          Platform.OS === "web" &&
+            ({ boxShadow: "0 18px 55px rgba(24,39,55,.20)" } as any),
         ]}
       >
         <View style={styles.content}>{children}</View>
@@ -34,30 +62,3 @@ export function MobileShell({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  outer: {
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  phone: {
-    width: 430,
-    height: 860,
-    maxWidth: "94%",
-    maxHeight: "96%",
-    borderRadius: 38,
-    borderWidth: 8,
-    borderColor: "#AAB2BD",
-    backgroundColor: COLORS.background,
-    overflow: "hidden",
-    flexDirection: "column",
-  },
-  phoneDark: { backgroundColor: "#111820" },
-  content: {
-    flex: 1,
-    minHeight: 0,
-    backgroundColor: COLORS.background,
-  },
-});
