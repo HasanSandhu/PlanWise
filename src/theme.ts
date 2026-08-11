@@ -14,3 +14,24 @@ export const COLORS = {
   dangerSoft: "#FDE7E5",
   green: "#248B5B",
 };
+
+export const DARK_COLORS = {
+  blue: "#69A3E7",
+  blue2: "#7DB5F0",
+  lightBlue: "#2E4A67",
+  paleBlue: "#172B45",
+  ink: "#F4F7FA",
+  text: "#D6E0EA",
+  gray: "#93A0AE",
+  line: "#33455A",
+  soft: "#1F2B3A",
+  card: "#182230",
+  background: "#0F1722",
+  danger: "#FF7B72",
+  dangerSoft: "#3A2323",
+  green: "#5DE0A3",
+};
+
+export function getThemeColors(darkMode: boolean) {
+  return darkMode ? { ...COLORS, ...DARK_COLORS } : COLORS;
+}

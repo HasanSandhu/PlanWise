@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "../theme";
+import { getThemeColors } from "../theme";
 import { ScreenName, Task } from "../types";
 import { Header } from "../components/Header";
 import { TaskCard } from "../components/TaskCard";
@@ -14,32 +14,110 @@ export function TasksScreen({
   onToggleTask,
   onNavigate,
   onAdd,
+  darkMode = false,
 }: {
   tasks: Task[];
   onToggleTask: (id: string) => void;
   onNavigate: (screen: ScreenName) => void;
   onAdd: () => void;
+  darkMode?: boolean;
 }) {
   const [filter, setFilter] = useState<Filter>("All");
+  const palette = getThemeColors(darkMode);
 
   const filtered = useMemo(
-    () => (filter === "All" ? tasks : tasks.filter((t) => t.category === filter)),
-    [tasks, filter]
+    () =>
+      filter === "All" ? tasks : tasks.filter((t) => t.category === filter),
+    [tasks, filter],
   );
 
-  const urgent = tasks.filter((t) => t.priority === "High" && !t.completed).length;
+  const urgent = tasks.filter(
+    (t) => t.priority === "High" && !t.completed,
+  ).length;
+
+  const styles = StyleSheet.create({
+    screen: { flex: 1, backgroundColor: palette.background },
+    content: { padding: 20, paddingBottom: 105 },
+    focusRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    focusTitle: { fontSize: 27, fontWeight: "800", color: palette.ink },
+    focusSub: { fontSize: 15, color: palette.text, marginTop: 3 },
+    calendarBox: {
+      width: 50,
+      height: 50,
+      borderRadius: 12,
+      backgroundColor: darkMode ? "#223446" : "#B5D1F9",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    filters: { flexDirection: "row", gap: 9, marginTop: 18, marginBottom: 25 },
+    filter: {
+      backgroundColor: darkMode ? "#1F2B3A" : "#E9E6E6",
+      paddingHorizontal: 17,
+      paddingVertical: 9,
+      borderRadius: 15,
+    },
+    filterActive: { backgroundColor: palette.blue },
+    filterText: { color: palette.text, fontSize: 14 },
+    filterTextActive: { color: "white", fontWeight: "700" },
+    activeHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 14,
+    },
+    activeTitle: { fontSize: 19, fontWeight: "700", color: palette.ink },
+    urgent: { color: palette.blue, fontSize: 12, fontWeight: "800" },
+    fab: {
+      position: "absolute",
+      right: 20,
+      bottom: 86,
+      width: 58,
+      height: 58,
+      borderRadius: 15,
+      backgroundColor: palette.blue,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: "#000",
+      shadowOpacity: 0.2,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 6,
+    },
+    empty: { alignItems: "center", marginTop: 80 },
+    emptyTitle: {
+      fontSize: 21,
+      fontWeight: "800",
+      color: palette.ink,
+      marginTop: 10,
+    },
+    emptySub: { color: palette.gray, marginTop: 4 },
+  });
 
   return (
     <View style={styles.screen}>
-      <Header title="Tasks" back onBack={() => onNavigate("Home")} onProfile={() => onNavigate("Profile")} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+      <Header
+        title="Tasks"
+        darkMode={darkMode}
+        back
+        onBack={() => onNavigate("Home")}
+        onProfile={() => onNavigate("Profile")}
+      />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
         <View style={styles.focusRow}>
           <View>
             <Text style={styles.focusTitle}>Today's Focus</Text>
-            <Text style={styles.focusSub}>{tasks.filter((t) => !t.completed).length} tasks remaining.</Text>
+            <Text style={styles.focusSub}>
+              {tasks.filter((t) => !t.completed).length} tasks remaining.
+            </Text>
           </View>
           <View style={styles.calendarBox}>
-            <Ionicons name="calendar-outline" size={28} color={COLORS.blue} />
+            <Ionicons name="calendar-outline" size={28} color={palette.blue} />
           </View>
         </View>
 
@@ -50,7 +128,12 @@ export function TasksScreen({
               onPress={() => setFilter(item)}
               style={[styles.filter, filter === item && styles.filterActive]}
             >
-              <Text style={[styles.filterText, filter === item && styles.filterTextActive]}>
+              <Text
+                style={[
+                  styles.filterText,
+                  filter === item && styles.filterTextActive,
+                ]}
+              >
                 {item}
               </Text>
             </Pressable>
@@ -64,13 +147,22 @@ export function TasksScreen({
 
         {filtered.length === 0 ? (
           <View style={styles.empty}>
-            <Ionicons name="checkmark-circle-outline" size={55} color={COLORS.green} />
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={55}
+              color={palette.green}
+            />
             <Text style={styles.emptyTitle}>All clear!</Text>
             <Text style={styles.emptySub}>No tasks in this category.</Text>
           </View>
         ) : (
           filtered.map((task) => (
-            <TaskCard key={task.id} task={task} onToggle={() => onToggleTask(task.id)} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              darkMode={darkMode}
+              onToggle={() => onToggleTask(task.id)}
+            />
           ))
         )}
       </ScrollView>
@@ -81,32 +173,3 @@ export function TasksScreen({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.background },
-  content: { padding: 20, paddingBottom: 105 },
-  focusRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  focusTitle: { fontSize: 27, fontWeight: "800", color: COLORS.ink },
-  focusSub: { fontSize: 15, color: COLORS.text, marginTop: 3 },
-  calendarBox: {
-    width: 50, height: 50, borderRadius: 12, backgroundColor: "#B5D1F9",
-    alignItems: "center", justifyContent: "center",
-  },
-  filters: { flexDirection: "row", gap: 9, marginTop: 18, marginBottom: 25 },
-  filter: { backgroundColor: "#E9E6E6", paddingHorizontal: 17, paddingVertical: 9, borderRadius: 15 },
-  filterActive: { backgroundColor: COLORS.blue },
-  filterText: { color: COLORS.text, fontSize: 14 },
-  filterTextActive: { color: "white", fontWeight: "700" },
-  activeHeader: { flexDirection: "row", justifyContent: "space-between", marginBottom: 14 },
-  activeTitle: { fontSize: 19, fontWeight: "700", color: COLORS.ink },
-  urgent: { color: COLORS.blue, fontSize: 12, fontWeight: "800" },
-  fab: {
-    position: "absolute", right: 20, bottom: 86, width: 58, height: 58, borderRadius: 15,
-    backgroundColor: COLORS.blue, alignItems: "center", justifyContent: "center",
-    shadowColor: "#000", shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-  },
-  empty: { alignItems: "center", marginTop: 80 },
-  emptyTitle: { fontSize: 21, fontWeight: "800", color: COLORS.ink, marginTop: 10 },
-  emptySub: { color: COLORS.gray, marginTop: 4 },
-});
