@@ -159,9 +159,8 @@ export default function App() {
             darkMode={darkMode}
             onNavigate={openMainScreen}
             onCancel={() => setScreen("Tasks")}
-            onSave={addTask} onNavigate={function (screen: ScreenName): void {
-              throw new Error("Function not implemented.");
-            } }          />
+            onSave={addTask}
+          />
         )}
 
         {screen === "Calendar" && (
