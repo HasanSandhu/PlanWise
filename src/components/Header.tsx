@@ -7,7 +7,7 @@ export function Header({
   title,
   back = false,
   onBack,
-  showSearch = true,
+  showSearch = false,
   onProfile,
   darkMode = false,
 }: {
@@ -122,15 +122,6 @@ export function Header({
       </Text>
 
       <View style={styles.rightSide}>
-        {showSearch && (
-          <Pressable
-            style={styles.iconButton}
-            accessibilityRole="button"
-            accessibilityLabel="Search"
-          >
-            <Ionicons name="search-outline" size={21} color={palette.ink} />
-          </Pressable>
-        )}
         <Pressable
           style={styles.profileButton}
           onPress={onProfile}
