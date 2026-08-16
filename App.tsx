@@ -1,17 +1,26 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Task, ScreenName } from "./src/types";
 import { getThemeColors } from "./src/theme";
 import { MobileShell } from "./src/components/MobileShell";
-import { LoginScreen } from "./src/screens/LoginScreen";
 import { HomeScreen } from "./src/screens/HomeScreen";
 import { TasksScreen } from "./src/screens/TasksScreen";
 import { TaskFormScreen } from "./src/screens/TaskFormScreen";
 import { CalendarScreen } from "./src/screens/CalendarScreen";
 import { ProfileScreen } from "./src/screens/ProfileScreen";
+import { SignIn } from "./src/screens/SignIn";
+import { SignUp } from "./src/screens/SignUp";
+import { AuthProvider, useAuth } from "./src/auth/auth-context";
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -57,10 +66,24 @@ const INITIAL_TASKS: Task[] = [
 ];
 
 export default function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
+function AppContent() {
+  const { session, loading, signIn, signUp, signOut } = useAuth();
+
+  const [authScreen, setAuthScreen] = useState<"signIn" | "signUp">("signIn");
+
   const [screen, setScreen] = useState<ScreenName>("Home");
+
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+
   const [darkMode, setDarkMode] = useState(false);
+
   const palette = useMemo(() => getThemeColors(darkMode), [darkMode]);
 
   const completedCount = useMemo(
@@ -71,7 +94,12 @@ export default function App() {
   const toggleTask = (id: string) => {
     setTasks((current) =>
       current.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task,
+        task.id === id
+          ? {
+              ...task,
+              completed: !task.completed,
+            }
+          : task,
       ),
     );
   };
@@ -93,47 +121,87 @@ export default function App() {
       alignItems: "center",
       justifyContent: "center",
     },
-    nav: {
-      height: 74,
-      borderTopWidth: 1,
-      borderTopColor: palette.line,
-      backgroundColor: palette.card,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-around",
-      paddingHorizontal: 12,
-    },
-    navButton: {
-      width: 76,
-      height: 60,
+
+    loadingContainer: {
+      flex: 1,
       alignItems: "center",
       justifyContent: "center",
+      gap: 14,
     },
-    navLabel: {
-      marginTop: 3,
-      fontSize: 11,
-      color: palette.gray,
-    },
-    navLabelActive: {
-      color: palette.blue,
-      fontWeight: "700",
+
+    loadingText: {
+      color: palette.text,
+      fontSize: 15,
+      fontWeight: "600",
     },
   });
 
-  if (!loggedIn) {
+  /*
+   * Loading screen shown while Supabase checks
+   * whether a saved session exists.
+   */
+  if (loading) {
     return (
       <View style={styles.browserBackground}>
         <StatusBar style={darkMode ? "light" : "dark"} />
+
         <MobileShell darkMode={darkMode}>
-          <LoginScreen darkMode={darkMode} onLogin={() => setLoggedIn(true)} />
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={palette.blue} />
+
+            <Text style={styles.loadingText}>Restoring your session...</Text>
+          </View>
         </MobileShell>
       </View>
     );
   }
 
+  /*
+   * Authentication screens are shown when
+   * there is no active Supabase session.
+   */
+  if (!session) {
+    return (
+      <View style={styles.browserBackground}>
+        <StatusBar style={darkMode ? "light" : "dark"} />
+
+        <MobileShell darkMode={darkMode}>
+          {authScreen === "signIn" ? (
+            <SignIn
+              darkMode={darkMode}
+              onSignIn={signIn}
+              onShowSignUp={() => setAuthScreen("signUp")}
+            />
+          ) : (
+            <SignUp
+              darkMode={darkMode}
+              onSignUp={async (credentials) => {
+                await signUp(credentials);
+
+                Alert.alert(
+                  "Account created",
+                  "Your account was created successfully. Check your email if confirmation is required.",
+                );
+
+                setAuthScreen("signIn");
+              }}
+              onShowSignIn={() => setAuthScreen("signIn")}
+            />
+          )}
+        </MobileShell>
+      </View>
+    );
+  }
+
+  /*
+   * Protected part of the application.
+   * It is only rendered when a Supabase
+   * session exists.
+   */
   return (
     <View style={styles.browserBackground}>
       <StatusBar style={darkMode ? "light" : "dark"} />
+
       <MobileShell darkMode={darkMode}>
         {screen === "Home" && (
           <HomeScreen
@@ -177,9 +245,19 @@ export default function App() {
             tasks={tasks}
             darkMode={darkMode}
             onToggleTheme={() => setDarkMode((value) => !value)}
-            onLogout={() => {
-              setLoggedIn(false);
-              setScreen("Home");
+            onLogout={async () => {
+              try {
+                await signOut();
+                setScreen("Home");
+                setAuthScreen("signIn");
+              } catch (error) {
+                const message =
+                  error instanceof Error
+                    ? error.message
+                    : "Unable to sign out.";
+
+                Alert.alert("Sign-out failed", message);
+              }
             }}
             onNavigate={openMainScreen}
           />
@@ -207,15 +285,32 @@ function BottomNav({
   onNavigate: (screen: ScreenName) => void;
 }) {
   const palette = getThemeColors(darkMode);
+
   const items: {
     name: ScreenName;
     icon: keyof typeof Ionicons.glyphMap;
     label: string;
   }[] = [
-    { name: "Home", icon: "home-outline", label: "Home" },
-    { name: "Calendar", icon: "calendar-outline", label: "Calendar" },
-    { name: "Tasks", icon: "clipboard-outline", label: "Tasks" },
-    { name: "Profile", icon: "person-circle-outline", label: "Profile" },
+    {
+      name: "Home",
+      icon: "home-outline",
+      label: "Home",
+    },
+    {
+      name: "Calendar",
+      icon: "calendar-outline",
+      label: "Calendar",
+    },
+    {
+      name: "Tasks",
+      icon: "clipboard-outline",
+      label: "Tasks",
+    },
+    {
+      name: "Profile",
+      icon: "person-circle-outline",
+      label: "Profile",
+    },
   ];
 
   const navStyles = StyleSheet.create({
@@ -229,17 +324,20 @@ function BottomNav({
       justifyContent: "space-around",
       paddingHorizontal: 12,
     },
+
     navButton: {
       width: 76,
       height: 60,
       alignItems: "center",
       justifyContent: "center",
     },
+
     navLabel: {
       marginTop: 3,
       fontSize: 11,
       color: palette.gray,
     },
+
     navLabelActive: {
       color: palette.blue,
       fontWeight: "700",
@@ -250,6 +348,7 @@ function BottomNav({
     <View style={navStyles.nav}>
       {items.map((item) => {
         const active = current === item.name;
+
         return (
           <Pressable
             key={item.name}
@@ -270,6 +369,7 @@ function BottomNav({
               size={24}
               color={active ? palette.blue : palette.gray}
             />
+
             <Text
               style={[navStyles.navLabel, active && navStyles.navLabelActive]}
             >

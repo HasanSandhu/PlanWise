@@ -18,7 +18,7 @@ import { getThemeColors } from "../theme";
 import {
   SignUpFormData,
   signUpSchema,
-} from "../schema/authSchemas";
+} from "../auth/authSchemas";
 
 type SignUpCredentials = Omit<
   SignUpFormData,

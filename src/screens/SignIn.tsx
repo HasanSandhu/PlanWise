@@ -18,7 +18,7 @@ import { getThemeColors } from "../theme";
 import {
   SignInFormData,
   signInSchema,
-} from "../schema/authSchemas";
+} from "../auth/authSchemas";
 
 type SignInProps = {
   onSignIn: (
